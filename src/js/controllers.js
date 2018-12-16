@@ -95,8 +95,8 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 				setTimeout(()=>{
 					console.log($scope.map[idx]);
 					// console.log($scope.nodes[idx]);
-					$scope.nodes[idx].stats.latency = temp_latency;
-					$scope.nodes[idx].readable.latency = temp_latency + ' ms';
+					$scope.nodes[idx].stats.latency = Math.round(temp_latency);
+					$scope.nodes[idx].readable.latency = $scope.nodes[idx].stats.latency + ' ms';
 					updateActiveNodes();
 				}, temp_latency); 
 			});
@@ -509,7 +509,7 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 				fill = 'success';
 			else
 				fill = 'danger';
-			
+
 			if(node.geo != null)
 			{
 				return {
