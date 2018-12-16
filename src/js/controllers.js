@@ -93,8 +93,11 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 			times.map((t, idx) => { 
 				var temp_latency = 10+t;
 				setTimeout(()=>{
-					console.log($scope.nodes[idx]);
+					console.log($scope.map[idx]);
+					// console.log($scope.nodes[idx]);
+					$scope.nodes[idx].stats.latency = temp_latency;
 					$scope.nodes[idx].readable.latency = temp_latency + ' ms';
+					updateActiveNodes();
 				}, temp_latency); 
 			});
 
@@ -206,7 +209,6 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 			case "initDistances":
 				$scope.distances = data;
-				console.log($scope.distances);
 				break;
 
 			case "add":
@@ -255,7 +257,6 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 						latencyFilter($scope.nodes[index]);
 					}
 
-					updateBestBlock();
 				}
 
 				break;
@@ -283,7 +284,6 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 					$scope.nodes[index].stats.block = data.block;
 					$scope.nodes[index].stats.propagationAvg = data.propagationAvg;
 
-					updateBestBlock();
 				}
 
 				break;
@@ -354,12 +354,6 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 				break;
 
-			case "uncleCount":
-				$scope.uncleCount = data[0] + data[1];
-				data.reverse();
-				$scope.uncleCountChart = data;
-
-				break;
 
 			case "charts":
 				if( !_.isEqual($scope.avgBlockTime, data.avgBlocktime) )
@@ -398,21 +392,6 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 				if( !_.isEqual($scope.miners, data.miners) ) {
 					$scope.miners = data.miners;
 					getMinersNames();
-				}
-
-				break;
-
-			case "inactive":
-				var index = findIndex({id: data.id});
-
-				if( index >= 0 )
-				{
-					if( !_.isUndefined(data.stats) )
-						$scope.nodes[index].stats = data.stats;
-
-					// toastr['error']("Node "+ $scope.nodes[index].info.name +" went away!", "Node connection was lost!");
-
-					updateActiveNodes();
 				}
 
 				break;
@@ -513,8 +492,6 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 	function updateActiveNodes()
 	{
-		updateBestBlock();
-
 		$scope.nodesTotal = $scope.nodes.length;
 
 		$scope.nodesActive = _.filter($scope.nodes, function (node) {
@@ -528,6 +505,11 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 		$scope.map = _.map($scope.nodes, function (node) {
 			var fill = $filter('bubbleClass')(node.stats, $scope.bestBlock);
+			if (node.stats.latency == 0)
+				fill = 'success';
+			else
+				fill = 'danger';
+			
 			if(node.geo != null)
 			{
 				return {
@@ -546,104 +528,10 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 					longitude: 0
 				};
 		});
+
+		// console.log($scope.map[0]);
+		// console.log($scope.nodes[0]);
 	}
-
-	function updateBestBlock()
-	{
-		if( $scope.nodes.length )
-		{
-			var chains = {};
-			var maxScore = 0;
-
-			// _($scope.nodes)
-			// 	.map(function (item)
-			// 	{
-			// 		maxScore += (item.trusted ? 50 : 1);
-
-			// 		if( _.isUndefined(chains[item.stats.block.number]) )
-			// 			chains[item.stats.block.number] = [];
-
-			// 		if( _.isUndefined(chains[item.stats.block.number][item.stats.block.fork]) )
-			// 			chains[item.stats.block.number][item.stats.block.fork] = {
-			// 				fork: item.stats.block.fork,
-			// 				count: 0,
-			// 				trusted: 0,
-			// 				score: 0
-			// 			};
-
-			// 		if(item.stats.block.trusted)
-			// 			chains[item.stats.block.number][item.stats.block.fork].trusted++;
-			// 		else
-			// 			chains[item.stats.block.number][item.stats.block.fork].count++;
-
-			// 		chains[item.stats.block.number][item.stats.block.fork].score = chains[item.stats.block.number][item.stats.block.fork].trusted * 50 + chains[item.stats.block.number][item.stats.block.fork].count;
-			// 	})
-			// 	.value();
-
-			// $scope.maxScore = maxScore;
-			// $scope.chains = _.reduce(chains, function (result, item, key)
-			// {
-			// 	result[key] = _.max(item, 'score');
-			// 	return result;
-			// }, {});
-
-			var bestBlock = _.max($scope.nodes, function (node)
-			{
-				// if( $scope.chains[node.stats.block.number].fork === node.stats.block.fork && $scope.chains[node.stats.block.number].score / $scope.maxScore >= 0.5 )
-				// {
-					return parseInt(node.stats.block.number);
-				// }
-
-				// return 0;
-			}).stats.block.number;
-
-			if( bestBlock !== $scope.bestBlock )
-			{
-				$scope.bestBlock = bestBlock;
-				$scope.bestStats = _.max($scope.nodes, function (node) {
-					return parseInt(node.stats.block.number);
-				}).stats;
-
-				$scope.lastBlock = $scope.bestStats.block.arrived;
-				$scope.lastDifficulty = $scope.bestStats.block.difficulty;
-			}
-		}
-	}
-
-	// function forkFilter(node)
-	// {
-	// 	if( _.isUndefined(node.readable) )
-	// 		node.readable = {};
-
-	// 	node.readable.forkClass = 'hidden';
-	// 	node.readable.forkMessage = '';
-
-	// 	return true;
-
-	// 	if( $scope.chains[node.stats.block.number].fork === node.stats.block.fork && $scope.chains[node.stats.block.number].score / $scope.maxScore >= 0.5 )
-	// 	{
-	// 		node.readable.forkClass = 'hidden';
-	// 		node.readable.forkMessage = '';
-
-	// 		return true;
-	// 	}
-
-	// 	if( $scope.chains[node.stats.block.number].fork !== node.stats.block.fork )
-	// 	{
-	// 		node.readable.forkClass = 'text-danger';
-	// 		node.readable.forkMessage = 'Wrong chain.<br/>This chain is a fork.';
-
-	// 		return false;
-	// 	}
-
-	// 	if( $scope.chains[node.stats.block.number].score / $scope.maxScore < 0.5)
-	// 	{
-	// 		node.readable.forkClass = 'text-warning';
-	// 		node.readable.forkMessage = 'May not be main chain.<br/>Waiting for more confirmations.';
-
-	// 		return false;
-	// 	}
-	// }
 
 	function latencyFilter(node)
 	{

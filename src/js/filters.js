@@ -538,7 +538,7 @@ angular.module('netStatsApp.filters', [])
 })
 .filter('bubbleClass', function() {
 	return function(node, bestBlock) {
-		return mainClass(node, bestBlock).replace('text-', '');
+		return mainClass2(node).replace('text-', '');
 	};
 })
 .filter('minerNameFilter', function() {
@@ -630,6 +630,14 @@ function compareVersions(v1, comparator, v2)
 	}
 
 	return eval('0' + comparator + cmp);
+}
+
+function mainClass2(node)
+{
+	if( ! node.active)
+		return 'text-danger';
+
+	return 'text-success';
 }
 
 function mainClass(node, bestBlock)

@@ -89,7 +89,10 @@ var raw_distances = JSON.parse(fs.readFileSync('distances.json'));
 raw_nodes.map((t_node) => {
 	Nodes.add({
 		id: t_node.id,
-		info: {name: t_node.name},
+		info: {
+			name: t_node.name,
+			location: t_node.location.name
+		},
 		geo: {
 			ll: [t_node.location.lat, t_node.location.lng]
 		}
@@ -435,16 +438,16 @@ var latencyTimeout = setInterval( function ()
 
 
 // Cleanup old inactive nodes
-var nodeCleanupTimeout = setInterval( function ()
-{
-	client.write({
-		action: 'init',
-		data: Nodes.all()
-	});
+// var nodeCleanupTimeout = setInterval( function ()
+// {
+// 	client.write({
+// 		action: 'init',
+// 		data: Nodes.all()
+// 	});
 
-	Nodes.getCharts();
+// 	Nodes.getCharts();
 
-}, 1000*60*60);
+// }, 1000*60*60);
 
 server.listen(process.env.PORT || 3000);
 console.log("listening on port 3000");
