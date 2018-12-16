@@ -30,6 +30,7 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 
 	$scope.nodes = [];
+	$scope.distances = [];
 	$scope.map = [];
 	$scope.blockPropagationChart = [];
 	$scope.uncleCountChart = _.fill(Array(MAX_BINS), 2);
@@ -69,6 +70,36 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 		$localStorage.predicate = $scope.predicate;
 		$localStorage.reverse = $scope.reverse;
+	}
+
+	$scope.sendPacket = function(id)
+	{
+		console.log(id);
+		var myindex = findIndex({id: id});
+		console.log(myindex);
+
+		if( !_.isUndefined($scope.nodes[myindex]) )
+		{
+			var start_node = $scope.nodes[myindex];
+
+			// var maxd = Math.max(...($scope.distances[myindex]));
+			var maxd = Math.max.apply(null, $scope.distances[myindex]);
+			var ttime = 50000.0;
+
+			var times = $scope.distances[myindex].map((d) => { return d*ttime/maxd; });
+
+			times = times.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
+
+			times.map((t, idx) => { 
+				var temp_latency = 10+t;
+				setTimeout(()=>{
+					console.log($scope.nodes[idx]);
+					$scope.nodes[idx].readable.latency = temp_latency + ' ms';
+				}, temp_latency); 
+			});
+
+			console.log('start: ', start_node);
+		}
 	}
 
 	$scope.pinNode = function(id)
@@ -171,6 +202,11 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 					updateActiveNodes();
 				}
 
+				break;
+
+			case "initDistances":
+				$scope.distances = data;
+				console.log($scope.distances);
 				break;
 
 			case "add":
@@ -492,8 +528,8 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 		$scope.map = _.map($scope.nodes, function (node) {
 			var fill = $filter('bubbleClass')(node.stats, $scope.bestBlock);
-
 			if(node.geo != null)
+			{
 				return {
 					radius: 3,
 					latitude: node.geo.ll[0],
@@ -502,6 +538,7 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 					fillClass: "text-" + fill,
 					fillKey: fill,
 				};
+			}
 			else
 				return {
 					radius: 0,

@@ -3,31 +3,31 @@ var logger = require('./lib/utils/logger');
 var chalk = require('chalk');
 var http = require('http');
 
-// Init WS SECRET
-var WS_SECRET;
+// // Init WS SECRET
+// var WS_SECRET;
 
-if( !_.isUndefined(process.env.WS_SECRET) && !_.isNull(process.env.WS_SECRET) )
-{
-	if( process.env.WS_SECRET.indexOf('|') > 0 )
-	{
-		WS_SECRET = process.env.WS_SECRET.split('|');
-	}
-	else
-	{
-		WS_SECRET = [process.env.WS_SECRET];
-	}
-}
-else
-{
-	try {
-		var tmp_secret_json = require('./ws_secret.json');
-		WS_SECRET = _.values(tmp_secret_json);
-	}
-	catch (e)
-	{
-		console.error("WS_SECRET NOT SET!!!");
-	}
-}
+// if( !_.isUndefined(process.env.WS_SECRET) && !_.isNull(process.env.WS_SECRET) )
+// {
+// 	if( process.env.WS_SECRET.indexOf('|') > 0 )
+// 	{
+// 		WS_SECRET = process.env.WS_SECRET.split('|');
+// 	}
+// 	else
+// 	{
+// 		WS_SECRET = [process.env.WS_SECRET];
+// 	}
+// }
+// else
+// {
+// 	try {
+// 		var tmp_secret_json = require('./ws_secret.json');
+// 		WS_SECRET = _.values(tmp_secret_json);
+// 	}
+// 	catch (e)
+// 	{
+// 		console.error("WS_SECRET NOT SET!!!");
+// 	}
+// }
 
 var banned = require('./lib/utils/config').banned;
 
@@ -81,6 +81,22 @@ external.plugin('emit', require('primus-emit'));
 var Collection = require('./lib/collection');
 var Nodes = new Collection(external);
 
+var fs = require('fs');
+
+var raw_nodes = JSON.parse(fs.readFileSync('nodes.json'));
+var raw_distances = JSON.parse(fs.readFileSync('distances.json'));
+
+raw_nodes.map((t_node) => {
+	Nodes.add({
+		id: t_node.id,
+		info: {name: t_node.name},
+		geo: {
+			ll: [t_node.location.lat, t_node.location.lng]
+		}
+	}, null);
+})
+
+
 Nodes.setChartsCallback(function (err, charts)
 {
 	if(err !== null)
@@ -100,6 +116,7 @@ Nodes.setChartsCallback(function (err, charts)
 // Init API Socket events
 api.on('connection', function (spark)
 {
+	console.log("api")
 	console.info('API', 'CON', 'Open:', spark.address.ip);
 
 	spark.on('hello', function (data)
@@ -369,8 +386,28 @@ api.on('connection', function (spark)
 
 client.on('connection', function (clientSpark)
 {
+	console.log("client connection");
+
+	// Nodes.add({id: 'node1'}, (err, info) => {
+
+	// 	if (err) {
+	// 		console.log("error adding node");
+	// 	} else {
+	// 		client.write({
+	// 			action: 'init',
+	// 			data: Nodes.all()
+	// 		});
+	// 	}
+	// })
+
+	client.write({
+		action: 'initDistances',
+		data: raw_distances
+	});
+	
 	clientSpark.on('ready', function (data)
 	{
+		console.log("ready");
 		clientSpark.emit('init', { nodes: Nodes.all() });
 
 		Nodes.getCharts();
@@ -378,6 +415,7 @@ client.on('connection', function (clientSpark)
 
 	clientSpark.on('client-pong', function (data)
 	{
+		console.log("client pong");
 		var serverTime = _.get(data, "serverTime", 0);
 		var latency = Math.ceil( (_.now() - serverTime) / 2 );
 
@@ -409,5 +447,6 @@ var nodeCleanupTimeout = setInterval( function ()
 }, 1000*60*60);
 
 server.listen(process.env.PORT || 3000);
+console.log("listening on port 3000");
 
 module.exports = server;
