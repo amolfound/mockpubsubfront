@@ -27,6 +27,14 @@ table td {
 	border-radius: 2px;
 }
 
+.sendb-visible {
+	visibility: visible;
+}
+
+.sendb-hidden {
+	visibility: hidden;
+}
+
 .bg-success,
 .text-success .propagationBox {
 	background: #7bcc3a;

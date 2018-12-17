@@ -20,7 +20,7 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 	$scope.avgHashrate = 0;
 	$scope.uncleCount = 0;
 	$scope.bestStats = {};
-	$scope.startIndex = 1000;
+	$scope.startIndex = -1;
 
 	$scope.lastGasLimit = _.fill(Array(MAX_BINS), 2);
 	$scope.lastBlocksTime = _.fill(Array(MAX_BINS), 2);
@@ -86,23 +86,33 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 			// var maxd = Math.max(...($scope.distances[myindex]));
 			var maxd = Math.max.apply(null, $scope.distances[$scope.startIndex]);
 			var ttime = 50000.0;
-
 			var times = $scope.distances[$scope.startIndex ].map((d) => { return d*ttime/maxd; });
-
 			times = times.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
 
 			times.map((t, idx) => { 
 				var temp_latency = 10+t;
 				setTimeout(()=>{
-					console.log($scope.map[idx]);
+					// console.log($scope.map[idx]);
 					$scope.nodes[idx].stats.latency = Math.round(temp_latency);
 					latencyFilter($scope.nodes[idx], idx)
-					//$scope.nodes[idx].readable.latency = $scope.nodes[idx].stats.latency + ' ms';
 					updateActiveNodes();
 				}, temp_latency); 
 			});
 
 			console.log('start: ', start_node);
+
+			var ttime2 = 400.0;
+			var times2 = $scope.distances[$scope.startIndex ].map((d) => { return d*ttime2/maxd; });
+			times2 = times2.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
+			times2.map((t, idx) => { 
+				var temp_latency = 10+t;
+				console.log("marlin lat:" + temp_latency);
+				setTimeout(()=>{
+					$scope.nodes[idx].stats.marlinLatency = Math.round(temp_latency);
+					// console.log("id: " + idx + " " + $scope.nodes[idx].stats.marlinLatency);
+					marlinLatencyFilter($scope.nodes[idx], idx)
+				}, temp_latency); 
+			});
 		}
 	}
 
@@ -187,6 +197,7 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 					// Init latency
 					latencyFilter(node, index);
+					marlinLatencyFilter(node, index);
 
 					// Init history
 					if( _.isUndefined(data.history) )
@@ -536,19 +547,16 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 		if( _.isUndefined(node.readable) )
 			node.readable = {};
 
-		if( _.isUndefined(node.stats) ) {
-			node.readable.latencyClass = 'text-danger';
-			node.readable.latency = 'offline';
-		}
-
 		node.readable.latency = node.stats.latency + ' ms';
 
 		if (index == $scope.startIndex) {
 			node.readable.latencyClass = 'text-danger';
-			node.readable.latency = '0 ms'
+			node.readable.latency = 'start node'
 		} else {
-			if (node.stats.latency == 0)
+			if (node.stats.latency == 0) {
 				node.readable.latencyClass = 'text-info';
+				node.readable.latency = 'not received'
+			}
 
 			else if (node.stats.latency <= 10) {
 				node.readable.latency = '< 10 ms';
@@ -560,6 +568,26 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 			else if (node.stats.latency > 10000 && node.stats.latency <= 100000)
 				node.readable.latencyClass = 'text-success';
+		}
+	}
+
+	function marlinLatencyFilter(node, index)
+	{
+		if( _.isUndefined(node.readable) )
+			node.readable = {};
+
+		node.readable.marlinLatency = node.stats.marlinLatency + ' ms';
+
+		if (index == $scope.startIndex) {
+			node.readable.marlinLatency = 'start node'
+		} else {
+			if (node.stats.marlinLatency == 0) {
+				node.readable.marlinLatency = 'not received'
+			}
+
+			else if (node.stats.marlinLatency <= 10) {
+				node.readable.marlinLatency = '< 10 ms';
+			}
 		}
 	}
 

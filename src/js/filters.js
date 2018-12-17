@@ -2,6 +2,14 @@
 /* Filters */
 
 angular.module('netStatsApp.filters', [])
+.filter('sendPacketClass', function() {
+	return function(startNodeIndex) {
+		if (startNodeIndex == -1)
+			return "sendb-visible";
+		else 
+			return "sendb-hidden";
+	}
+})
 .filter('nodesActiveClass', function() {
 	return function(active, total) {
 		var ratio = active/total;

@@ -449,7 +449,7 @@ var latencyTimeout = setInterval( function ()
 
 // }, 1000*60*60);
 
-server.listen(process.env.PORT || 3000);
+server.listen(process.env.PORT || 3000, "0.0.0.0");
 console.log("listening on port 3000");
 
 module.exports = server;
