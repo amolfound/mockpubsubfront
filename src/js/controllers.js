@@ -579,14 +579,27 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 		node.readable.marlinLatency = node.stats.marlinLatency + ' ms';
 
 		if (index == $scope.startIndex) {
+			node.readable.marlinLatencyClass = 'text-danger';
 			node.readable.marlinLatency = 'start node'
 		} else {
 			if (node.stats.marlinLatency == 0) {
+				node.readable.marlinLatencyClass = 'text-info';
 				node.readable.marlinLatency = 'not received'
 			}
 
 			else if (node.stats.marlinLatency <= 10) {
+				node.readable.marlinLatencyClass = 'text-orange';
 				node.readable.marlinLatency = '< 10 ms';
+			}
+
+			else if (node.stats.marlinLatency > 10 && node.stats.marlinLatency <= 10000) {
+				node.readable.marlinLatencyClass = 'text-warning';
+				node.readable.marlinLatency = '< 10 s';	
+			}
+
+			else if (node.stats.marlinLatency > 10000 && node.stats.marlinLatency <= 100000) {
+				node.readable.marlinLatencyClass = 'text-success';
+				node.readable.marlinLatency = '> 10 s';
 			}
 		}
 	}
