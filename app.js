@@ -407,6 +407,48 @@ client.on('connection', function (clientSpark)
 		action: 'initDistances',
 		data: raw_distances
 	});
+
+	clientSpark.on('sendPacket', function(data) {
+		var startNodeIndex = data.startNodeIndex;
+		console.log(startNodeIndex);
+
+		var maxd = Math.max.apply(null, raw_distances[startNodeIndex]);
+
+		var ttime = 50000.0;
+		var times = raw_distances[startNodeIndex].map((d) => { return d*ttime/maxd; });
+		times = times.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
+
+		// console.log(times);
+
+		times.map((t, idx) => {
+			var temp_latency = 10+t;
+			setTimeout(()=>{
+				// console.log(t);
+				clientSpark.emit('gossipNodeUpdate', {
+					latency: temp_latency,
+					index: idx
+				})		
+			}, temp_latency+100); 
+		});
+
+	
+		var ttime2 = 400.0;
+		var times2 = raw_distances[startNodeIndex].map((d) => { return d*ttime2/maxd; });
+		times2 = times2.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
+		
+		// console.log(times2);
+
+		times2.map((t, idx) => { 
+			var temp_latency = 10+t;
+			setTimeout(()=>{
+				console.log(t);
+				clientSpark.emit('marlinNodeUpdate', {
+					latency: temp_latency,
+					index: idx
+				})
+			}, temp_latency+100); 
+		});
+	});
 	
 	clientSpark.on('ready', function (data)
 	{

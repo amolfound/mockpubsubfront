@@ -85,40 +85,45 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 		if( !_.isUndefined($scope.nodes[$scope.startIndex ]) )
 		{
-			var start_node = $scope.nodes[$scope.startIndex ];
 
-			// var maxd = Math.max(...($scope.distances[myindex]));
-			var maxd = Math.max.apply(null, $scope.distances[$scope.startIndex]);
-			var ttime = 50000.0;
-			var times = $scope.distances[$scope.startIndex ].map((d) => { return d*ttime/maxd; });
-			times = times.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
-
-			times.map((t, idx) => { 
-				var temp_latency = 10+t;
-				setTimeout(()=>{
-					$scope.nodesCoveredByGossip ++;
-					$scope.gossipCovPcent = Math.round($scope.nodesCoveredByGossip * 100 / $scope.nodesTotal)
-					$scope.nodes[idx].stats.latency = Math.round(temp_latency);
-					latencyFilter($scope.nodes[idx], idx)
-					updateActiveNodes();
-				}, (temp_latency+$scope.latency)); 
+			socket.emit('sendPacket', {
+				startNodeIndex: $scope.startIndex
 			});
 
-			console.log('start: ', start_node);
+			// var start_node = $scope.nodes[$scope.startIndex ];
 
-			var ttime2 = 400.0;
-			var times2 = $scope.distances[$scope.startIndex ].map((d) => { return d*ttime2/maxd; });
-			times2 = times2.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
-			times2.map((t, idx) => { 
-				var temp_latency = 10+t;
-				setTimeout(()=>{
-					$scope.nodesCoveredByMarlin ++;
-					$scope.marlinCovPcent = Math.round($scope.nodesCoveredByMarlin * 100 / $scope.nodesTotal)
-					$scope.nodes[idx].stats.marlinLatency = Math.round(temp_latency);
-					// console.log("id: " + idx + " " + $scope.nodes[idx].stats.marlinLatency);
-					marlinLatencyFilter($scope.nodes[idx], idx)
-				}, (temp_latency+$scope.latency)); 
-			});
+			// // var maxd = Math.max(...($scope.distances[myindex]));
+			// var maxd = Math.max.apply(null, $scope.distances[$scope.startIndex]);
+			// var ttime = 50000.0;
+			// var times = $scope.distances[$scope.startIndex ].map((d) => { return d*ttime/maxd; });
+			// times = times.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
+
+			// times.map((t, idx) => { 
+			// 	var temp_latency = 10+t;
+			// 	setTimeout(()=>{
+			// 		$scope.nodesCoveredByGossip ++;
+			// 		$scope.gossipCovPcent = Math.round($scope.nodesCoveredByGossip * 100 / $scope.nodesTotal)
+			// 		$scope.nodes[idx].stats.latency = Math.round(temp_latency);
+			// 		latencyFilter($scope.nodes[idx], idx)
+			// 		updateActiveNodes();
+			// 	}, (temp_latency+$scope.latency)); 
+			// });
+
+			// console.log('start: ', start_node);
+
+			// var ttime2 = 400.0;
+			// var times2 = $scope.distances[$scope.startIndex ].map((d) => { return d*ttime2/maxd; });
+			// times2 = times2.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
+			// times2.map((t, idx) => { 
+			// 	var temp_latency = 10+t;
+			// 	setTimeout(()=>{
+			// 		$scope.nodesCoveredByMarlin ++;
+			// 		$scope.marlinCovPcent = Math.round($scope.nodesCoveredByMarlin * 100 / $scope.nodesTotal)
+			// 		$scope.nodes[idx].stats.marlinLatency = Math.round(temp_latency);
+			// 		// console.log("id: " + idx + " " + $scope.nodes[idx].stats.marlinLatency);
+			// 		marlinLatencyFilter($scope.nodes[idx], idx)
+			// 	}, (temp_latency+$scope.latency)); 
+			// });
 		}
 	}
 
@@ -181,6 +186,30 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 	{
 		$scope.latency = data.latency;
 	})
+
+	socket.on('gossipNodeUpdate', function (data) {
+		// console.log(data);
+		var latency = data.latency;
+		var index = data.index;
+
+		$scope.nodesCoveredByGossip ++;
+		$scope.gossipCovPcent = Math.round($scope.nodesCoveredByGossip * 100 / $scope.nodesTotal)
+		$scope.nodes[index].stats.latency = Math.round(latency);
+
+		latencyFilter($scope.nodes[index], index);
+		updateActiveNodes();
+	});
+
+	socket.on('marlinNodeUpdate', function (data) {
+		// console.log(data);
+		var latency = data.latency;
+		var index = data.index;
+
+		$scope.nodesCoveredByMarlin ++;
+		$scope.marlinCovPcent = Math.round($scope.nodesCoveredByMarlin * 100 / $scope.nodesTotal);
+		$scope.nodes[index].stats.marlinLatency = Math.round(latency);
+		marlinLatencyFilter($scope.nodes[index], index);
+	});
 
 	function socketAction(action, data)
 	{
