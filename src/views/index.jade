@@ -5,24 +5,45 @@ block content
   div.container-fluid(ng-controller='StatsCtrl')
 
     div.row(ng-cloak)
+      div.col-xs-6.stat-holder
+        div.big-info.difficulty.text-orange
+          div.pull-left.icon-full-width
+            i.icon-hashrate
+          div.big-details-holder
+            span.small-title marlin coverage
+            span.big-details {{nodesCoveredByMarlin}}/{{nodesTotal}}  ({{marlinCovPcent}} %)
+          div.clearfix
+
+      div.col-xs-6.stat-holder
+        div.big-info.blocktime.text-info
+          div.pull-left.icon-full-width
+            i.icon-time
+          div.big-details-holder
+            span.small-title gossip coverage
+            span.big-details {{nodesCoveredByGossip}}/{{nodesTotal}}  ({{gossipCovPcent}} %)
+          div.clearfix
+
+    div.clearfix
+
+
+    div.row(ng-cloak)
         div.row
 
-          div.col-xs-8.stat-holder.map-holder
+          div.col-xs-6.stat-holder.map-holder
             //- div.col-xs-12
             nodemap#mapHolder(data="map")
 
-          div.col-xs-4
+          div.col-xs-6
             div.row
               div.col-xs-12.stat-holder.box
-                div.active-nodes(class="{{ nodesActive | nodesActiveClass : nodesTotal }}")
+                div.active-nodes(class="text-success")
                   i.icon-node
                   span.small-title active nodes
                   span.small-value {{nodesActive}}/{{nodesTotal}}
               div.col-xs-12.stat-holder.box
                 div.page-latency(class="{{ {active: true, latency: latency} | latencyClass }}")
-                  i.icon-clock
-                  span.small-title page latency
-                  span.small-value {{latency}} ms
+                  span.small-title
+                  span.small-value
               div.col-xs-12.stat-holder.box
                 div.uptime(class="text-danger")
                   i.icon-bulb
@@ -56,9 +77,9 @@ block content
               span.small(ng-click="orderTable(['info.location'], false)") Location
             th
               span.small() Send
-            th.th-latency
+            th
               span.small(ng-click="orderTable(['stats.latency'], false)") Gossip Latency
-            th.th-latency
+            th
               span.small(ng-click="orderTable(['stats.marlinLatency'], false)") Marlin Latency
         tbody(ng-cloak)
           tr(ng-repeat='node in nodes | orderBy:predicate track by node.id', class="{{ node.readable.latencyClass }}", id="node_{{node.id}}")

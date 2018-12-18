@@ -20,7 +20,6 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 	$scope.avgHashrate = 0;
 	$scope.uncleCount = 0;
 	$scope.bestStats = {};
-	$scope.startIndex = -1;
 
 	$scope.lastGasLimit = _.fill(Array(MAX_BINS), 2);
 	$scope.lastBlocksTime = _.fill(Array(MAX_BINS), 2);
@@ -37,7 +36,12 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 	$scope.uncleCountChart = _.fill(Array(MAX_BINS), 2);
 	$scope.coinbases = [];
 
+	$scope.startIndex = -1;
 	$scope.latency = 0;
+	$scope.nodesCoveredByGossip = 0;
+	$scope.nodesCoveredByMarlin = 0;
+	$scope.gossipCovPcent = 0;
+	$scope.marlinCovPcent = 0;
 
 	$scope.currentApiVersion = "0.1.1";
 
@@ -60,7 +64,7 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 		{
 			$scope.reverse = !$scope.reverse;
 
-			if($scope.reverse === true){
+			if($scope.reverse === true) {
 				_.forEach(predicate, function (value, key) {
 					predicate[key] = (value[0] === '-' ? value.replace('-', '') : '-' + value);
 				});
@@ -92,7 +96,8 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 			times.map((t, idx) => { 
 				var temp_latency = 10+t;
 				setTimeout(()=>{
-					// console.log($scope.map[idx]);
+					$scope.nodesCoveredByGossip ++;
+					$scope.gossipCovPcent = Math.round($scope.nodesCoveredByGossip * 100 / $scope.nodesTotal)
 					$scope.nodes[idx].stats.latency = Math.round(temp_latency);
 					latencyFilter($scope.nodes[idx], idx)
 					updateActiveNodes();
@@ -106,8 +111,9 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 			times2 = times2.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
 			times2.map((t, idx) => { 
 				var temp_latency = 10+t;
-				console.log("marlin lat:" + temp_latency);
 				setTimeout(()=>{
+					$scope.nodesCoveredByMarlin ++;
+					$scope.marlinCovPcent = Math.round($scope.nodesCoveredByMarlin * 100 / $scope.nodesTotal)
 					$scope.nodes[idx].stats.marlinLatency = Math.round(temp_latency);
 					// console.log("id: " + idx + " " + $scope.nodes[idx].stats.marlinLatency);
 					marlinLatencyFilter($scope.nodes[idx], idx)
@@ -594,12 +600,10 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 
 			else if (node.stats.marlinLatency > 10 && node.stats.marlinLatency <= 10000) {
 				node.readable.marlinLatencyClass = 'text-warning';
-				node.readable.marlinLatency = '< 10 s';	
 			}
 
 			else if (node.stats.marlinLatency > 10000 && node.stats.marlinLatency <= 100000) {
 				node.readable.marlinLatencyClass = 'text-success';
-				node.readable.marlinLatency = '> 10 s';
 			}
 		}
 	}
