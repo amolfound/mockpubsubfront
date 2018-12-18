@@ -96,7 +96,7 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 					$scope.nodes[idx].stats.latency = Math.round(temp_latency);
 					latencyFilter($scope.nodes[idx], idx)
 					updateActiveNodes();
-				}, temp_latency); 
+				}, (temp_latency+$scope.latency)); 
 			});
 
 			console.log('start: ', start_node);
@@ -111,7 +111,7 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 					$scope.nodes[idx].stats.marlinLatency = Math.round(temp_latency);
 					// console.log("id: " + idx + " " + $scope.nodes[idx].stats.marlinLatency);
 					marlinLatencyFilter($scope.nodes[idx], idx)
-				}, temp_latency); 
+				}, (temp_latency+$scope.latency)); 
 			});
 		}
 	}
