@@ -414,7 +414,7 @@ client.on('connection', function (clientSpark)
 
 		var maxd = Math.max.apply(null, raw_distances[startNodeIndex]);
 
-		var ttime = 50000.0;
+		var ttime = 6000.0;
 		var times = raw_distances[startNodeIndex].map((d) => { return d*ttime/maxd; });
 		times = times.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
 
@@ -432,7 +432,7 @@ client.on('connection', function (clientSpark)
 		});
 
 	
-		var ttime2 = 400.0;
+		var ttime2 = 200.0;
 		var times2 = raw_distances[startNodeIndex].map((d) => { return d*ttime2/maxd; });
 		times2 = times2.map((t) => { return (Math.sqrt(t)*(1+0.05*(0.5-Math.random())))**2; });
 		

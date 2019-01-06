@@ -598,10 +598,10 @@ netStatsApp.controller('StatsCtrl', function($scope, $filter, $localStorage, soc
 				node.readable.latencyClass = 'text-orange';
 			}
 
-			else if (node.stats.latency > 10 && node.stats.latency <= 10000)
+			else if (node.stats.latency > 10 && node.stats.latency <= 1000)
 				node.readable.latencyClass = 'text-warning';
 
-			else if (node.stats.latency > 10000 && node.stats.latency <= 100000)
+			else if (node.stats.latency > 1000 && node.stats.latency <= 10000)
 				node.readable.latencyClass = 'text-success';
 		}
 	}
