@@ -11,7 +11,7 @@ Clone the repository and install the dependencies
 
 ```bash
 git clone ........
-cd eth-netstats
+cd mockpubsubfrontend
 npm install
 sudo npm install -g grunt-cli
 ```
