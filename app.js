@@ -422,15 +422,19 @@ client.on('connection', function (clientSpark)
 
 		times.map((t, idx) => {
 			var temp_latency = 10+t;
-			setTimeout(()=>{
-				// console.log(t);
-				clientSpark.emit('gossipNodeUpdate', {
-					latency: temp_latency,
-					index: idx
-				})		
-			}, temp_latency+100); 
+			waitAndCallGossip(temp_latency, idx, clientSpark) 
 		});
 
+
+		function waitAndCallGossip(temp_latency, index, clientSpark) {
+		 	console.log("sending gossip update: " + index + " | "+ temp_latency)
+		 	setTimeout(()=>{
+				clientSpark.emit('gossipNodeUpdate', {
+					latency: temp_latency,
+					index: index
+				})
+			}, temp_latency);
+		}
 	
 		var ttime2 = 200.0;
 		var times2 = raw_distances[startNodeIndex].map((d) => { return d*ttime2/maxd; });
@@ -440,14 +444,18 @@ client.on('connection', function (clientSpark)
 
 		times2.map((t, idx) => { 
 			var temp_latency = 10+t;
-			setTimeout(()=>{
-				console.log(t);
+			waitAndCallMarlin(temp_latency, idx, clientSpark)
+		});
+
+		function waitAndCallMarlin(temp_latency, index, clientSpark){
+			console.log("sending marlin update: " + index + " | "+ temp_latency)
+		  	setTimeout(()=>{
 				clientSpark.emit('marlinNodeUpdate', {
 					latency: temp_latency,
-					index: idx
+					index: index
 				})
-			}, temp_latency+100); 
-		});
+			}, temp_latency);
+		}
 	});
 	
 	clientSpark.on('ready', function (data)
